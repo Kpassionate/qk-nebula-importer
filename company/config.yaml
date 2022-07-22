@@ -1,0 +1,383 @@
+version: v3
+description: company_overview
+removeTempFiles: false
+clientSettings:
+  retry: 3
+  concurrency: 10
+  channelBufferSize: 128
+  space: company_overview
+  connection:
+    user: root
+    password:
+    address:
+  postStart:
+    commands: |
+      DROP SPACE IF EXISTS company_overview;
+      CREATE SPACE IF NOT EXISTS company_overview(partition_num=100, replica_factor=1, vid_type=int);USE company_overview;
+      CREATE TAG IF NOT EXISTS company(ent_id int not null, ent_name string);
+      CREATE TAG IF NOT EXISTS person(person_id int, person_name string);
+      CREATE TAG IF NOT EXISTS contact(contact_info string);
+      CREATE TAG IF NOT EXISTS bid(mid int, title string, amount string);
+      CREATE TAG IF NOT EXISTS cases(mid string, case_num string, title string, case_type string);
+      CREATE EDGE faren_company(fr_name string, edge_type int default 1);
+      CREATE EDGE manager_company(position string, edge_type int default 2);
+      CREATE EDGE inv_company(paid_amount string, radio string, edge_type int default 3);
+      CREATE EDGE lx_company(contact string, contact_type int, edge_type int default 4);
+      CREATE EDGE invest(amount string, radio string, edge_type int default 5);
+      CREATE EDGE branch(edge_type int default 6);
+      CREATE EDGE ipr(ipr_type string, ipr_name string, edge_type int default 7);
+      CREATE EDGE case_company(role_type string, edge_type int default 8);
+      CREATE EDGE bid_company(role_type string, edge_type int default 9);
+    afterPeriod: 8s
+
+logPath: ./err/test.log
+files:
+  - path: ./company.csv
+    failDataPath: ./err/company.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          type: int
+        tags:
+          - name: company
+            props:
+              - name: ent_id
+                type: int
+              - name: ent_name
+                type: string
+
+  - path: ./person.csv
+    failDataPath: ./err/person.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          type: int
+        tags:
+          - name: person
+            props:
+              - name: person_id
+                type: int
+              - name: person_name
+                type: string
+
+  - path: ./contact.csv
+    failDataPath: ./err/contact.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          type: int
+        tags:
+          - name: contact
+            props:
+              - name: contact_info
+                type: string
+
+  - path: ./bid.csv
+    failDataPath: ./err/bid.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          type: int
+        tags:
+          - name: bid
+            props:
+              - name: mid
+                type: int
+              - name: title
+                type: string
+              - name: amount
+                type: string
+
+  - path: ./cases.csv
+    failDataPath: ./err/cases.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          type: int
+        tags:
+          - name: cases
+            props:
+              - name: mid
+                type: string
+              - name: case_num
+                type: string
+              - name: title
+                type: string
+              - name: case_type
+                type: string
+
+
+  - path: ./faren_company.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: faren_company
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: fr_name
+            type: string
+            index: 2
+          - name: edge_type
+            type: int
+
+
+  - path: ./manager_company.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: manager_company
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: position
+            type: string
+            index: 2
+          - name: edge_type
+            type: int
+
+
+  - path: ./inv_company.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: inv_company
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: paid_amount
+            type: string
+            index: 2
+          - name: radio
+            type: string
+            index: 3
+          - name: edge_type
+            type: int
+
+
+  - path: ./lx_company.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: lx_company
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: contact
+            type: string
+            index: 2
+          - name: contact_type
+            type: int
+            index: 3
+          - name: edge_type
+            type: int
+
+
+  - path: ./invest.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: invest
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: amount
+            type: string
+            index: 2
+          - name: radio
+            type: string
+            index: 3
+          - name: edge_type
+            type: int
+
+  - path: ./branch.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: branch
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: edge_type
+            type: int
+
+
+  - path: ./ipr.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: ipr
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: ipr_type
+            type: string
+            index: 2
+          - name: ipr_name
+            type: string
+            index: 3
+          - name: edge_type
+            type: int
+
+  - path: ./case_company.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: case_company
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: role_type
+            type: string
+            index: 2
+          - name: edge_type
+            type: int
+
+
+  - path: ./bid_company.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: edge
+      edge:
+        name: bid_company
+        withRanking: false
+        srcVID:
+          index: 0
+          type: int
+        dstVID:
+          index: 1
+          type: int
+        props:
+          - name: role_type
+            type: string
+            index: 2
+          - name: edge_type
+            type: int

@@ -1,0 +1,60 @@
+version: v3
+description: example
+removeTempFiles: false
+clientSettings:
+  retry: 1
+  concurrency: 2 # number of graph clients
+  channelBufferSize: 1
+  space: company_overview
+  connection:
+    # user: root
+    # password: nebula
+    # address: graphd1:9669,graphd2:9669
+    user: root
+    password:
+    address:
+  postStart:
+    commands: |
+      DROP SPACE IF EXISTS company_overview;
+      CREATE SPACE IF NOT EXISTS company_overview(partition_num=5, replica_factor=1, vid_type=int);USE company_overview;
+      CREATE TAG IF NOT EXISTS company(ent_id int not null, ent_name string);
+      CREATE TAG IF NOT EXISTS people(people_id int, people_name string);
+      CREATE TAG IF NOT EXISTS contact(contact_info string);
+      CREATE TAG IF NOT EXISTS bid(mid int, title string, amount string);
+      CREATE TAG IF NOT EXISTS cases(mid string, case_num string, title string, case_type string);
+      CREATE EDGE faren_company(fr_name string, edge_type int default 1);
+      CREATE EDGE manager_company(position string, edge_type int default 2);
+      CREATE EDGE inv_company(paid_amount string, radio string, edge_type int default 3);
+      CREATE EDGE lx_company(contact string, contact_type int, edge_type int default 4);
+      CREATE EDGE invest(amount string, radio string, edge_type int default 5);
+      CREATE EDGE branch(edge_type int default 6);
+      CREATE EDGE ipr(ipr_type string, ipr_name string, edge_type int default 7);
+      CREATE EDGE case_company(role_type string, edge_type int default 8);
+      CREATE EDGE bid_company(role_type string, edge_type int default 9);
+    afterPeriod: 8s
+  # preStop:
+  #   commands: |
+  #     UPDATE CONFIGS storage:rocksdb_column_family_options = { disable_auto_compactions = false };
+  #     UPDATE CONFIGS storage:wal_ttl=86400;
+logPath: ./err/test.log
+files:
+  - path: ./company.csv
+    failDataPath: ./err/company.csv
+    batchSize: 128
+    inOrder: false
+    type: csv
+    csv:
+      withHeader: false
+      withLabel: false
+    schema:
+      type: vertex
+      vertex:
+        vid:
+          type: int
+        tags:
+          - name: company
+            props:
+              - name: ent_id
+                type: int
+              - name: ent_name
+                type: string
